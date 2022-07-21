@@ -1,6 +1,5 @@
 package com.capgemini.rabbitmq.routes;
 
-import com.capgemini.rabbitmq.dto.WeatherDto;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Message;
@@ -8,6 +7,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.support.DefaultMessage;
 import org.springframework.stereotype.Component;
+import com.capgemini.rabbitmq.dto.WeatherDto;
 
 import java.util.Date;
 
