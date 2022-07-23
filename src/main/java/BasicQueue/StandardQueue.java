@@ -1,9 +1,6 @@
 package BasicQueue;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.DeliverCallback;
+import com.rabbitmq.client.*;
 import org.apache.camel.processor.resequencer.Timeout;
 
 import java.io.IOException;
@@ -69,15 +66,39 @@ public class StandardQueue {
             channel = connection.createChannel();
             channel.queueDeclare(QUEUE_NAME, true, false, false, null);
 
-            DeliverCallback deliverCallback = (consumerTag, delivery)  ->{
-                String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-                System.out.println(" [x] Received '" + message + "'");
+            Consumer consumer = new DefaultConsumer(channel){
+              @Override
+              public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                  String routingKey = envelope.getRoutingKey();
+                  String contentType = properties.getContentType();
+                  long deliveryTag = envelope.getDeliveryTag();
+                  channel.basicAck(deliveryTag, false);
+              }
             };
+            int msgCount = getMessageCount(channel, QUEUE_NAME);
 
-            channel.basicConsume(QUEUE_NAME, true, deliverCallback, consumerTag -> {});
+            int count = 0;
+
+            while(count < msgCount) {
+                channel.basicConsume(QUEUE_NAME, true, consumer);
+                System.out.println(consumer.getClass());
+                count++;
+            }
+
+
+
         }catch(IOException | TimeoutException e){
             e.printStackTrace();
         }
+
+
+    }
+
+    private static int getMessageCount(Channel channel, String queueName) throws IOException{
+
+            var result = channel.queueDeclare(queueName, true, false, false, null);
+            return result.getMessageCount();
+
 
     }
 
